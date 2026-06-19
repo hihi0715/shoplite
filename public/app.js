@@ -299,6 +299,8 @@ function renderCategoryChart(items) {
     options: doughnutChartOptions({ valueType: "money" }),
   });
 }
+
+function aggregateRevenueByQuarter(items) {
   const quarters = new Map();
   for (const item of items) {
     const [year, month] = item.date.split("-").map(Number);
@@ -519,6 +521,7 @@ function renderCustomersPage(data) {
       options: doughnutChartOptions({ valueType: "count" }),
     });
   }
+  const body = document.getElementById("customerTableBody");
   if (!data.customers.length) return renderEmptyRow("customerTableBody", 5);
   body.innerHTML = data.customers.map((item) => `
     <tr>
