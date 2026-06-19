@@ -363,7 +363,7 @@ function buildMonthlyTickIndices(dates) {
 
 function formatMonthLabel(dateStr) {
   const [year, month] = dateStr.split("-");
-  return `${year}/${month.padStart(2, "0")}`;
+  return `${year}年${Number(month)}月`;
 }
 
 function buildMonthlyLinearXTicks(labels, monthlyTickIndices) {
@@ -371,13 +371,11 @@ function buildMonthlyLinearXTicks(labels, monthlyTickIndices) {
   return {
     maxRotation: 0,
     autoSkip: false,
-    source: "data",
-    callback: (value) => {
-      const index = Number(value);
-      return monthlyTickIndices.has(index) ? formatMonthLabel(labels[index]) : "";
-    },
     afterBuildTicks: (scale) => {
-      scale.ticks = monthTicks.map((index) => ({ value: index }));
+      scale.ticks = monthTicks.map((index) => ({
+        value: index,
+        label: formatMonthLabel(labels[index]),
+      }));
     },
   };
 }
