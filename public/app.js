@@ -329,14 +329,32 @@ function smoothSeries(values, windowSize = 3) {
   });
 }
 
-function lineChartMoneyOptions({ xTitle } = {}) {
+function lineChartMoneyOptions({ xTitle, xTicks } = {}) {
   return {
     plugins: { legend: { position: "bottom" } },
     scales: {
-      x: xTitle ? { title: { display: true, text: xTitle } } : {},
+      x: {
+        ...(xTitle ? { title: { display: true, text: xTitle } } : {}),
+        ...(xTicks ? { ticks: xTicks } : {}),
+      },
       y: { ticks: { callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}` } },
     },
   };
+}
+
+function buildMonthlyTickIndices(dates) {
+  const indices = new Set([0]);
+  for (let i = 1; i < dates.length; i += 1) {
+    const [year, month] = dates[i].split("-").map(Number);
+    const [prevYear, prevMonth] = dates[i - 1].split("-").map(Number);
+    if (year !== prevYear || month !== prevMonth) indices.add(i);
+  }
+  return indices;
+}
+
+function formatMonthLabel(dateStr) {
+  const [year, month] = dateStr.split("-");
+  return `${year}/${month.padStart(2, "0")}`;
 }
 
 function renderDailyTimeChart(items) {
@@ -344,6 +362,7 @@ function renderDailyTimeChart(items) {
   destroyChart("timeDaily");
   const labels = items.map((item) => item.date);
   const revenues = items.map((item) => item.revenue);
+  const monthlyTickIndices = buildMonthlyTickIndices(labels);
   charts.timeDaily = new Chart(ctx, {
     type: "line",
     data: {
@@ -356,8 +375,10 @@ function renderDailyTimeChart(items) {
           backgroundColor: "rgba(147, 197, 253, 0.18)",
           fill: true,
           tension: 0.15,
-          pointRadius: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
           borderWidth: 2,
+          order: 1,
         },
         {
           label: "平滑趨勢",
@@ -366,11 +387,22 @@ function renderDailyTimeChart(items) {
           fill: false,
           tension: 0.42,
           pointRadius: 0,
+          pointHoverRadius: 4,
           borderWidth: 3,
+          order: 2,
         },
       ],
     },
-    options: lineChartMoneyOptions({ xTitle: "日期" }),
+    options: lineChartMoneyOptions({
+      xTitle: "月份",
+      xTicks: {
+        maxRotation: 0,
+        autoSkip: false,
+        callback: (_value, index) => (
+          monthlyTickIndices.has(index) ? formatMonthLabel(labels[index]) : ""
+        ),
+      },
+    }),
   });
 }
 

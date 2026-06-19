@@ -58,13 +58,18 @@
             <div class="panel-head"><h2>品類結構</h2></div>
             <canvas id="categoryChart"></canvas>
           </article>
-          <article class="panel">
-            <div class="panel-head"><h2>每日營收趨勢</h2></div>
-            <canvas id="dailyTimeChart"></canvas>
-          </article>
-          <article class="panel">
-            <div class="panel-head"><h2>季度營收</h2></div>
-            <canvas id="quarterlyTimeChart"></canvas>
+          <article class="panel wide">
+            <div class="panel-head"><h2>營收趨勢</h2></div>
+            <div class="chart-stack">
+              <div class="chart-block">
+                <h3 class="chart-subtitle">每日營收趨勢</h3>
+                <canvas id="dailyTimeChart"></canvas>
+              </div>
+              <div class="chart-block">
+                <h3 class="chart-subtitle">季度營收</h3>
+                <canvas id="quarterlyTimeChart"></canvas>
+              </div>
+            </div>
           </article>
           <article class="panel wide">
             <div class="panel-head"><h2>暢銷商品</h2></div>
