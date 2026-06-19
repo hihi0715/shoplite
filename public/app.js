@@ -330,14 +330,19 @@ function smoothSeries(values, windowSize = 3) {
 }
 
 function lineChartMoneyOptions({ xTitle, xTicks } = {}) {
+  const gridStyle = { color: "rgba(148, 163, 184, 0.25)" };
   return {
     plugins: { legend: { position: "bottom" } },
     scales: {
       x: {
         ...(xTitle ? { title: { display: true, text: xTitle } } : {}),
-        ...(xTicks ? { ticks: xTicks } : {}),
+        grid: gridStyle,
+        ticks: xTicks || { maxRotation: 0, autoSkip: true },
       },
-      y: { ticks: { callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}` } },
+      y: {
+        ticks: { callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}` },
+        grid: gridStyle,
+      },
     },
   };
 }
@@ -357,6 +362,19 @@ function formatMonthLabel(dateStr) {
   return `${year}/${month.padStart(2, "0")}`;
 }
 
+function createMonthlyAxisTicks(labels, monthlyTickIndices) {
+  return {
+    maxRotation: 0,
+    autoSkip: false,
+    callback: (_value, index) => (
+      monthlyTickIndices.has(index) ? formatMonthLabel(labels[index]) : ""
+    ),
+    afterBuildTicks: (scale) => {
+      scale.ticks = scale.ticks.filter((tick) => monthlyTickIndices.has(tick.value));
+    },
+  };
+}
+
 function renderDailyTimeChart(items) {
   const ctx = document.getElementById("dailyTimeChart");
   destroyChart("timeDaily");
@@ -371,8 +389,8 @@ function renderDailyTimeChart(items) {
         {
           label: "每日營收",
           data: revenues,
-          borderColor: "#2563eb",
-          backgroundColor: "rgba(37, 99, 235, 0.15)",
+          borderColor: "#93c5fd",
+          backgroundColor: "rgba(147, 197, 253, 0.18)",
           fill: true,
           tension: 0.15,
           pointRadius: 0,
@@ -389,20 +407,14 @@ function renderDailyTimeChart(items) {
           tension: 0.42,
           pointRadius: 0,
           pointHoverRadius: 4,
-          borderWidth: 2,
+          borderWidth: 3,
           order: 2,
         },
       ],
     },
     options: lineChartMoneyOptions({
       xTitle: "月份",
-      xTicks: {
-        maxRotation: 0,
-        autoSkip: false,
-        callback: (_value, index) => (
-          monthlyTickIndices.has(index) ? formatMonthLabel(labels[index]) : ""
-        ),
-      },
+      xTicks: createMonthlyAxisTicks(labels, monthlyTickIndices),
     }),
   });
 }
