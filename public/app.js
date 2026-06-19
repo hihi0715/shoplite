@@ -177,28 +177,120 @@ function renderCategoryChart(items) {
   });
 }
 
+function aggregateRevenueByQuarter(items) {
+  const quarters = new Map();
+
+  for (const item of items) {
+    const [year, month] = item.date.split("-").map(Number);
+    const quarter = Math.ceil(month / 3);
+    const key = `${year}-${quarter}`;
+    const current = quarters.get(key) || { revenue: 0, orders: 0, year, quarter };
+    current.revenue += item.revenue;
+    current.orders += item.orders;
+    quarters.set(key, current);
+  }
+
+  return Array.from(quarters.values())
+    .sort((a, b) => (a.year - b.year) || (a.quarter - b.quarter))
+    .map((entry) => ({
+      label: formatQuarterMonthLabel(entry.year, entry.quarter),
+      revenue: entry.revenue,
+      orders: entry.orders,
+    }));
+}
+
+function formatQuarterMonthLabel(year, quarter) {
+  const month = (quarter - 1) * 3 + 1;
+  return `${year}/${String(month).padStart(2, "0")}`;
+}
+
+function smoothSeries(values, windowSize = 3) {
+  if (!values.length) return [];
+  return values.map((_, index) => {
+    const start = Math.max(0, index - windowSize + 1);
+    const slice = values.slice(start, index + 1);
+    const total = slice.reduce((sum, value) => sum + value, 0);
+    return Math.round(total / slice.length);
+  });
+}
+
 function renderTimeChart(items) {
   const ctx = document.getElementById("timeChart");
   if (timeChart) timeChart.destroy();
+
+  const quarterly = aggregateRevenueByQuarter(items);
+  const labels = quarterly.map((item) => item.label);
+  const revenues = quarterly.map((item) => item.revenue);
+  const trend = smoothSeries(revenues, 3);
+
   timeChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: items.map((i) => i.date),
-      datasets: [{
-        label: "營收",
-        data: items.map((i) => i.revenue),
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37, 99, 235, 0.08)",
-        fill: true,
-        tension: 0.3,
-        pointRadius: 0,
-      }],
+      labels,
+      datasets: [
+        {
+          label: "季度營收",
+          data: revenues,
+          borderColor: "#93c5fd",
+          backgroundColor: "rgba(147, 197, 253, 0.18)",
+          fill: true,
+          tension: 0.15,
+          pointRadius: 4,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+        },
+        {
+          label: "平滑趨勢",
+          data: trend,
+          borderColor: "#1d4ed8",
+          backgroundColor: "transparent",
+          fill: false,
+          tension: 0.42,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          borderWidth: 3,
+        },
+      ],
     },
     options: {
-      plugins: { legend: { display: false } },
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: { boxWidth: 12, color: "#64748b" },
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = context.parsed.y || 0;
+              return `${context.dataset.label}: ${formatMoney(value)}`;
+            },
+          },
+        },
+      },
       scales: {
-        x: { ticks: { maxTicksLimit: 8, color: "#64748b" }, grid: { display: false } },
-        y: { ticks: { color: "#64748b" }, grid: { color: "#e2e8f0" } },
+        x: {
+          ticks: {
+            color: "#64748b",
+            maxRotation: 0,
+            autoSkip: false,
+          },
+          grid: { display: false },
+          title: {
+            display: true,
+            text: "月份（每 3 個月）",
+            color: "#94a3b8",
+            font: { size: 11 },
+          },
+        },
+        y: {
+          ticks: {
+            color: "#64748b",
+            callback: (value) => `NT$ ${Number(value).toLocaleString("zh-TW")}`,
+          },
+          grid: { color: "#e2e8f0" },
+        },
       },
     },
   });
