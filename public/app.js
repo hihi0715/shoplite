@@ -99,7 +99,8 @@ let toastTimer;
 
 const charts = {
   category: null,
-  time: null,
+  timeDaily: null,
+  timeQuarterly: null,
   segment: null,
   productCategory: null,
   productBar: null,
@@ -328,30 +329,39 @@ function smoothSeries(values, windowSize = 3) {
   });
 }
 
-function renderTimeChart(items) {
-  const ctx = document.getElementById("timeChart");
-  destroyChart("time");
-  const quarterly = aggregateRevenueByQuarter(items);
-  const labels = quarterly.map((item) => item.label);
-  const revenues = quarterly.map((item) => item.revenue);
-  charts.time = new Chart(ctx, {
+function lineChartMoneyOptions({ xTitle } = {}) {
+  return {
+    plugins: { legend: { position: "bottom" } },
+    scales: {
+      x: xTitle ? { title: { display: true, text: xTitle } } : {},
+      y: { ticks: { callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}` } },
+    },
+  };
+}
+
+function renderDailyTimeChart(items) {
+  const ctx = document.getElementById("dailyTimeChart");
+  destroyChart("timeDaily");
+  const labels = items.map((item) => item.date);
+  const revenues = items.map((item) => item.revenue);
+  charts.timeDaily = new Chart(ctx, {
     type: "line",
     data: {
       labels,
       datasets: [
         {
-          label: "季度營收",
+          label: "每日營收",
           data: revenues,
           borderColor: "#93c5fd",
           backgroundColor: "rgba(147, 197, 253, 0.18)",
           fill: true,
           tension: 0.15,
-          pointRadius: 4,
+          pointRadius: 2,
           borderWidth: 2,
         },
         {
           label: "平滑趨勢",
-          data: smoothSeries(revenues, 3),
+          data: smoothSeries(revenues, 7),
           borderColor: "#1d4ed8",
           fill: false,
           tension: 0.42,
@@ -360,13 +370,30 @@ function renderTimeChart(items) {
         },
       ],
     },
-    options: {
-      plugins: { legend: { position: "bottom" } },
-      scales: {
-        x: { title: { display: true, text: "月份（每 3 個月）" } },
-        y: { ticks: { callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}` } },
-      },
+    options: lineChartMoneyOptions({ xTitle: "日期" }),
+  });
+}
+
+function renderQuarterlyTimeChart(items) {
+  const ctx = document.getElementById("quarterlyTimeChart");
+  destroyChart("timeQuarterly");
+  const quarterly = aggregateRevenueByQuarter(items);
+  charts.timeQuarterly = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: quarterly.map((item) => item.label),
+      datasets: [{
+        label: "季度營收",
+        data: quarterly.map((item) => item.revenue),
+        borderColor: "#2563eb",
+        backgroundColor: "rgba(37, 99, 235, 0.15)",
+        fill: true,
+        tension: 0.15,
+        pointRadius: 4,
+        borderWidth: 2,
+      }],
     },
+    options: lineChartMoneyOptions({ xTitle: "季度" }),
   });
 }
 
@@ -421,7 +448,8 @@ async function refreshOverviewPage() {
   ]);
   renderSummary(summary);
   renderCategoryChart(categories.items);
-  renderTimeChart(timeline.items);
+  renderDailyTimeChart(timeline.items);
+  renderQuarterlyTimeChart(timeline.items);
   renderTopProducts(products.items);
   renderSegments(segments.items);
 }
