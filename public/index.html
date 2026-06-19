@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopLite — 品牌營運總覽</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <strong>ShopLite</strong>
+        <span>Commerce Intelligence</span>
+      </div>
+    </div>
+    <nav>
+      <span class="nav-item active">總覽</span>
+      <span class="nav-item disabled">商品</span>
+      <span class="nav-item disabled">顧客</span>
+      <span class="nav-item disabled">通路</span>
+    </nav>
+  </aside>
+
+  <div class="shell">
+    <header class="topbar">
+      <div id="apiBanner" class="api-banner" hidden></div>
+      <div class="topbar-left">
+        <h1>營運總覽</h1>
+        <p id="lastUpdated" class="meta">—</p>
+      </div>
+      <div class="topbar-actions">
+        <label class="field">
+          <span>品牌</span>
+          <select id="tenantId"></select>
+        </label>
+        <button id="loadSampleBtn" class="btn ghost">匯入模擬訂單</button>
+        <button id="refreshBtn" class="btn ghost">重新整理</button>
+        <label class="btn primary upload-btn">
+          匯入訂單
+          <input id="csvFile" type="file" accept=".csv" hidden />
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section class="cards">
+        <article class="card">
+          <h3>訂單數</h3>
+          <p id="totalOrders">—</p>
+        </article>
+        <article class="card">
+          <h3>營收</h3>
+          <p id="totalRevenue">—</p>
+        </article>
+        <article class="card">
+          <h3>活躍顧客</h3>
+          <p id="uniqueCustomers">—</p>
+        </article>
+        <article class="card">
+          <h3>平均客單價</h3>
+          <p id="avgOrderValue">—</p>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>品類結構</h2>
+          </div>
+          <canvas id="categoryChart"></canvas>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h2>營收趨勢</h2>
+          </div>
+          <canvas id="timeChart"></canvas>
+        </article>
+        <article class="panel wide">
+          <div class="panel-head">
+            <h2>暢銷商品</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>商品編號</th>
+                  <th>品類</th>
+                  <th>營收</th>
+                  <th>銷量</th>
+                </tr>
+              </thead>
+              <tbody id="topProductsBody"></tbody>
+            </table>
+          </div>
+        </article>
+        <article class="panel wide">
+          <div class="panel-head">
+            <h2>顧客分群</h2>
+          </div>
+          <canvas id="segmentChart"></canvas>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>分群</th>
+                  <th>人數</th>
+                  <th>距上次購買</th>
+                  <th>購買次數</th>
+                  <th>累計消費</th>
+                </tr>
+              </thead>
+              <tbody id="segmentsBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>
