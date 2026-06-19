@@ -329,18 +329,22 @@ function smoothSeries(values, windowSize = 3) {
   });
 }
 
-function lineChartMoneyOptions({ xTitle, xTicks } = {}) {
+function lineChartMoneyOptions({ xTitle, xScale, xTicks } = {}) {
   const gridStyle = { color: "rgba(148, 163, 184, 0.25)" };
   return {
     plugins: { legend: { position: "bottom" } },
     scales: {
       x: {
+        ...(xScale || {}),
         ...(xTitle ? { title: { display: true, text: xTitle } } : {}),
         grid: gridStyle,
         ticks: xTicks || { maxRotation: 0, autoSkip: true },
       },
       y: {
-        ticks: { callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}` },
+        ticks: {
+          maxTicksLimit: 6,
+          callback: (v) => `NT$ ${Number(v).toLocaleString("zh-TW")}`,
+        },
         grid: gridStyle,
       },
     },
@@ -362,17 +366,24 @@ function formatMonthLabel(dateStr) {
   return `${year}/${month.padStart(2, "0")}`;
 }
 
-function createMonthlyAxisTicks(labels, monthlyTickIndices) {
+function buildMonthlyLinearXTicks(labels, monthlyTickIndices) {
+  const monthTicks = [...monthlyTickIndices].sort((a, b) => a - b);
   return {
     maxRotation: 0,
     autoSkip: false,
-    callback: (_value, index) => (
-      monthlyTickIndices.has(index) ? formatMonthLabel(labels[index]) : ""
-    ),
+    source: "data",
+    callback: (value) => {
+      const index = Number(value);
+      return monthlyTickIndices.has(index) ? formatMonthLabel(labels[index]) : "";
+    },
     afterBuildTicks: (scale) => {
-      scale.ticks = scale.ticks.filter((tick) => monthlyTickIndices.has(tick.value));
+      scale.ticks = monthTicks.map((index) => ({ value: index }));
     },
   };
+}
+
+function toIndexedPoints(values) {
+  return values.map((value, index) => ({ x: index, y: value }));
 }
 
 function renderDailyTimeChart(items) {
@@ -384,11 +395,10 @@ function renderDailyTimeChart(items) {
   charts.timeDaily = new Chart(ctx, {
     type: "line",
     data: {
-      labels,
       datasets: [
         {
           label: "每日營收",
-          data: revenues,
+          data: toIndexedPoints(revenues),
           borderColor: "#93c5fd",
           backgroundColor: "rgba(147, 197, 253, 0.18)",
           fill: true,
@@ -400,7 +410,7 @@ function renderDailyTimeChart(items) {
         },
         {
           label: "平滑趨勢",
-          data: smoothSeries(revenues, 7),
+          data: toIndexedPoints(smoothSeries(revenues, 7)),
           borderColor: "#1d4ed8",
           backgroundColor: "transparent",
           fill: false,
@@ -414,7 +424,12 @@ function renderDailyTimeChart(items) {
     },
     options: lineChartMoneyOptions({
       xTitle: "月份",
-      xTicks: createMonthlyAxisTicks(labels, monthlyTickIndices),
+      xScale: {
+        type: "linear",
+        min: 0,
+        max: Math.max(labels.length - 1, 0),
+      },
+      xTicks: buildMonthlyLinearXTicks(labels, monthlyTickIndices),
     }),
   });
 }
