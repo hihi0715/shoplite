@@ -16,11 +16,11 @@
         <span>Commerce Intelligence</span>
       </div>
     </div>
-    <nav>
-      <span class="nav-item active">總覽</span>
-      <span class="nav-item disabled">商品</span>
-      <span class="nav-item disabled">顧客</span>
-      <span class="nav-item disabled">通路</span>
+    <nav id="mainNav">
+      <button class="nav-item active" data-page="overview" type="button">總覽</button>
+      <button class="nav-item" data-page="products" type="button">商品</button>
+      <button class="nav-item" data-page="customers" type="button">顧客</button>
+      <button class="nav-item" data-page="channels" type="button">通路</button>
     </nav>
   </aside>
 
@@ -28,7 +28,7 @@
     <header class="topbar">
       <div id="apiBanner" class="api-banner" hidden></div>
       <div class="topbar-left">
-        <h1>營運總覽</h1>
+        <h1 id="pageTitle">營運總覽</h1>
         <p id="lastUpdated" class="meta">—</p>
       </div>
       <div class="topbar-actions">
@@ -46,76 +46,146 @@
     </header>
 
     <main>
-      <section class="cards">
-        <article class="card">
-          <h3>訂單數</h3>
-          <p id="totalOrders">—</p>
-        </article>
-        <article class="card">
-          <h3>營收</h3>
-          <p id="totalRevenue">—</p>
-        </article>
-        <article class="card">
-          <h3>活躍顧客</h3>
-          <p id="uniqueCustomers">—</p>
-        </article>
-        <article class="card">
-          <h3>平均客單價</h3>
-          <p id="avgOrderValue">—</p>
-        </article>
+      <section id="page-overview" class="page active">
+        <section class="cards">
+          <article class="card"><h3>訂單數</h3><p id="totalOrders">—</p></article>
+          <article class="card"><h3>營收</h3><p id="totalRevenue">—</p></article>
+          <article class="card"><h3>活躍顧客</h3><p id="uniqueCustomers">—</p></article>
+          <article class="card"><h3>平均客單價</h3><p id="avgOrderValue">—</p></article>
+        </section>
+        <section class="grid">
+          <article class="panel">
+            <div class="panel-head"><h2>品類結構</h2></div>
+            <canvas id="categoryChart"></canvas>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h2>營收趨勢（季度）</h2></div>
+            <canvas id="timeChart"></canvas>
+          </article>
+          <article class="panel wide">
+            <div class="panel-head"><h2>暢銷商品</h2></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>商品編號</th><th>品類</th><th>營收</th><th>銷量</th></tr>
+                </thead>
+                <tbody id="topProductsBody"></tbody>
+              </table>
+            </div>
+          </article>
+          <article class="panel wide">
+            <div class="panel-head"><h2>顧客分群</h2></div>
+            <canvas id="segmentChart"></canvas>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>分群</th><th>人數</th><th>距上次購買</th><th>購買次數</th><th>累計消費</th></tr>
+                </thead>
+                <tbody id="segmentsBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
       </section>
 
-      <section class="grid">
-        <article class="panel">
-          <div class="panel-head">
-            <h2>品類結構</h2>
-          </div>
-          <canvas id="categoryChart"></canvas>
-        </article>
-        <article class="panel">
-          <div class="panel-head">
-            <h2>營收趨勢（季度）</h2>
-          </div>
-          <canvas id="timeChart"></canvas>
-        </article>
-        <article class="panel wide">
-          <div class="panel-head">
-            <h2>暢銷商品</h2>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>商品編號</th>
-                  <th>品類</th>
-                  <th>營收</th>
-                  <th>銷量</th>
-                </tr>
-              </thead>
-              <tbody id="topProductsBody"></tbody>
-            </table>
-          </div>
-        </article>
-        <article class="panel wide">
-          <div class="panel-head">
-            <h2>顧客分群</h2>
-          </div>
-          <canvas id="segmentChart"></canvas>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>分群</th>
-                  <th>人數</th>
-                  <th>距上次購買</th>
-                  <th>購買次數</th>
-                  <th>累計消費</th>
-                </tr>
-              </thead>
-              <tbody id="segmentsBody"></tbody>
-            </table>
-          </div>
-        </article>
+      <section id="page-products" class="page">
+        <section class="cards">
+          <article class="card"><h3>商品數</h3><p id="productCount">—</p></article>
+          <article class="card"><h3>品類數</h3><p id="categoryCount">—</p></article>
+          <article class="card card-text"><h3>冠軍商品</h3><p id="topProductName">—</p></article>
+          <article class="card"><h3>商品總營收</h3><p id="productRevenue">—</p></article>
+        </section>
+        <section class="grid">
+          <article class="panel">
+            <div class="panel-head"><h2>品類營收</h2></div>
+            <canvas id="productCategoryChart"></canvas>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h2>Top 5 商品營收</h2></div>
+            <canvas id="productBarChart"></canvas>
+          </article>
+          <article class="panel wide">
+            <div class="panel-head"><h2>商品銷售明細</h2></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>商品名稱</th><th>編號</th><th>品類</th><th>營收</th><th>銷量</th><th>均價</th></tr>
+                </thead>
+                <tbody id="productTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <section id="page-customers" class="page">
+        <section class="cards">
+          <article class="card"><h3>顧客數</h3><p id="customerTotal">—</p></article>
+          <article class="card"><h3>回購率</h3><p id="customerRepeatRate">—</p></article>
+          <article class="card"><h3>平均購買次數</h3><p id="customerAvgFreq">—</p></article>
+          <article class="card"><h3>平均累計消費</h3><p id="customerAvgMonetary">—</p></article>
+        </section>
+        <section class="grid">
+          <article class="panel">
+            <div class="panel-head"><h2>客群分布</h2></div>
+            <canvas id="customerSegmentChart"></canvas>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h2>客群指標</h2></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>分群</th><th>人數</th><th>平均 R</th><th>平均 F</th><th>平均 M</th></tr>
+                </thead>
+                <tbody id="customerSegmentBody"></tbody>
+              </table>
+            </div>
+          </article>
+          <article class="panel wide">
+            <div class="panel-head"><h2>高價值顧客 Top 20</h2></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>顧客 ID</th><th>分群</th><th>距上次購買</th><th>購買次數</th><th>累計消費</th></tr>
+                </thead>
+                <tbody id="customerTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <section id="page-channels" class="page">
+        <section class="cards cards-3">
+          <article class="card"><h3>通路數</h3><p id="channelCount">—</p></article>
+          <article class="card card-text"><h3>主力通路</h3><p id="topChannelName">—</p></article>
+          <article class="card"><h3>通路總營收</h3><p id="channelRevenue">—</p></article>
+        </section>
+        <section class="grid">
+          <article class="panel">
+            <div class="panel-head"><h2>通路營收佔比</h2></div>
+            <canvas id="channelPieChart"></canvas>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h2>通路客單價</h2></div>
+            <canvas id="channelAovChart"></canvas>
+          </article>
+          <article class="panel wide">
+            <div class="panel-head"><h2>通路月度趨勢</h2></div>
+            <canvas id="channelTrendChart"></canvas>
+          </article>
+          <article class="panel wide">
+            <div class="panel-head"><h2>通路表現</h2></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>通路</th><th>營收</th><th>訂單數</th><th>平均客單價</th></tr>
+                </thead>
+                <tbody id="channelTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
       </section>
     </main>
   </div>

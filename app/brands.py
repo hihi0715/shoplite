@@ -42,3 +42,40 @@ BRAND_LIST = [
     {"id": brand_id, "name": meta["display_name"]}
     for brand_id, meta in BRANDS.items()
 ]
+
+PRODUCT_NAMES = {
+    "AB-SK01": "玻尿酸精華",
+    "AB-SK02": "維他命 C 精華",
+    "AB-SK03": "修護精華油",
+    "AB-SK04": "敏感肌化妝水",
+    "AB-BE01": "霧面唇釉",
+    "AB-BE02": "柔光粉底",
+    "AB-BE03": "防曬隔離乳",
+    "LF-FA01": "亞麻襯衫",
+    "LF-FA02": "直筒牛仔褲",
+    "LF-FA03": "針織外套",
+    "LF-FA04": "休閒西裝褲",
+    "LF-FA05": "棉質 T 恤",
+    "LF-BE01": "護手霜",
+    "LF-BE02": "身體乳",
+    "NH-HO01": "北歐抱枕",
+    "NH-HO02": "香氛蠟燭",
+    "NH-HO03": "收納籃組",
+    "NH-HO04": "亞麻床包組",
+    "NH-FA01": "居家拖鞋",
+    "NH-FA02": "棉麻圍裙",
+}
+
+CHANNEL_LABELS = {
+    "website": "官網",
+    "shopee": "蝦皮",
+    "instagram": "Instagram",
+}
+
+
+def get_product_name(product_id: str) -> str:
+    return PRODUCT_NAMES.get(product_id, product_id)
+
+
+def get_channel_label(channel: str) -> str:
+    return CHANNEL_LABELS.get(channel, channel)

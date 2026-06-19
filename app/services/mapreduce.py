@@ -118,3 +118,36 @@ def reduce_user_orders(
         "frequency": len(values),
         "monetary": sum(amounts),
     }
+
+
+def map_channel_sales(orders_chunk: list) -> list[tuple[str, tuple[float, int]]]:
+    results: list[tuple[str, tuple[float, int]]] = []
+    for order in orders_chunk:
+        results.append((order.channel, (order.amount, 1)))
+    return results
+
+
+def reduce_channel_sales(channel: str, values: list[tuple[float, int]]) -> tuple[str, dict]:
+    revenue = sum(v[0] for v in values)
+    count = sum(v[1] for v in values)
+    return channel, {
+        "channel": channel,
+        "revenue": revenue,
+        "orders": count,
+    }
+
+
+def map_channel_monthly(orders_chunk: list) -> list[tuple[str, tuple[float, int]]]:
+    results: list[tuple[str, tuple[float, int]]] = []
+    for order in orders_chunk:
+        month = order.order_time.strftime("%Y-%m")
+        key = f"{order.channel}|{month}"
+        results.append((key, (order.amount, 1)))
+    return results
+
+
+def reduce_channel_monthly(key: str, values: list[tuple[float, int]]) -> tuple[str, dict]:
+    channel, month = key.split("|", 1)
+    revenue = sum(v[0] for v in values)
+    orders = sum(v[1] for v in values)
+    return key, {"channel": channel, "month": month, "revenue": revenue, "orders": orders}
