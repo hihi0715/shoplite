@@ -20,6 +20,80 @@ const CHANNEL_COLORS = {
   instagram: "#db2777",
 };
 
+const doughnutPercentPlugin = {
+  id: "doughnutPercentLabels",
+  afterDatasetDraw(chart) {
+    const { ctx } = chart;
+    const dataset = chart.data.datasets[0];
+    if (!dataset) return;
+
+    const total = dataset.data.reduce((sum, value) => sum + Number(value || 0), 0);
+    if (!total) return;
+
+    chart.getDatasetMeta(0).data.forEach((arc, index) => {
+      const value = Number(dataset.data[index] || 0);
+      const percent = (value / total) * 100;
+      if (percent < 3) return;
+
+      const { x, y } = arc.tooltipPosition();
+      ctx.save();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px Segoe UI, PingFang TC, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "rgba(15, 23, 42, 0.35)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(`${percent.toFixed(1)}%`, x, y);
+      ctx.restore();
+    });
+  },
+};
+
+Chart.register(doughnutPercentPlugin);
+
+function doughnutChartOptions({ valueType = "money" } = {}) {
+  return {
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          generateLabels(chart) {
+            const dataset = chart.data.datasets[0];
+            const total = dataset.data.reduce((sum, value) => sum + Number(value || 0), 0);
+            return chart.data.labels.map((label, index) => {
+              const value = Number(dataset.data[index] || 0);
+              const percent = total ? ((value / total) * 100).toFixed(1) : "0.0";
+              const meta = chart.getDatasetMeta(0);
+              const style = meta.controller.getStyle(index);
+              return {
+                text: `${label} (${percent}%)`,
+                fillStyle: style.backgroundColor,
+                strokeStyle: style.borderColor,
+                lineWidth: style.borderWidth,
+                hidden: !chart.getDataVisibility(index),
+                index,
+              };
+            });
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label(context) {
+            const total = context.dataset.data.reduce((sum, value) => sum + Number(value || 0), 0);
+            const value = context.parsed;
+            const percent = total ? ((value / total) * 100).toFixed(1) : "0.0";
+            const formatted = valueType === "money"
+              ? formatMoney(value)
+              : value.toLocaleString("zh-TW");
+            return `${context.label}: ${formatted} (${percent}%)`;
+          },
+        },
+      },
+    },
+  };
+}
+
 let currentPage = "overview";
 let toastTimer;
 
@@ -222,11 +296,9 @@ function renderCategoryChart(items) {
         borderWidth: 0,
       }],
     },
-    options: { plugins: { legend: { position: "bottom" } } },
+    options: doughnutChartOptions({ valueType: "money" }),
   });
 }
-
-function aggregateRevenueByQuarter(items) {
   const quarters = new Map();
   for (const item of items) {
     const [year, month] = item.date.split("-").map(Number);
@@ -444,11 +516,9 @@ function renderCustomersPage(data) {
           borderWidth: 0,
         }],
       },
-      options: { plugins: { legend: { position: "bottom" } } },
+      options: doughnutChartOptions({ valueType: "count" }),
     });
   }
-
-  const body = document.getElementById("customerTableBody");
   if (!data.customers.length) return renderEmptyRow("customerTableBody", 5);
   body.innerHTML = data.customers.map((item) => `
     <tr>
@@ -502,7 +572,7 @@ function renderChannelsPage(data) {
         borderWidth: 0,
       }],
     },
-    options: { plugins: { legend: { position: "bottom" } } },
+    options: doughnutChartOptions({ valueType: "money" }),
   });
 
   destroyChart("channelAov");
