@@ -27,33 +27,63 @@ shoplite/
 │   └── services/         # ingest / mapreduce / kmeans / analytics
 ├── public/               # 前端靜態頁
 ├── data/sample_orders.csv
-├── scripts/generate_sample_data.py
-├── start.bat             # Windows 一鍵本地啟動
+├── scripts/
+│   ├── generate_sample_data.py
+│   └── ensure-env.js       # npm 本地啟動前置檢查
+├── package.json            # npm 本地開發指令
+├── start.bat               # Windows 一鍵本地啟動（替代方案）
 ├── requirements.txt
 └── vercel.json
 ```
 
 ## 本地開發
 
-**Windows（建議）**：雙擊 `start.bat`，瀏覽器開啟 http://localhost:8000
+### 前置需求
 
-**手動啟動**：
+- [Node.js](https://nodejs.org/) 18+（用於 `npm run dev`）
+- [Python](https://www.python.org/) 3.10+
+
+### 使用 npm 啟動（建議）
+
+```bash
+cd shoplite
+npm install
+copy .env.example .env        # Windows
+# cp .env.example .env        # macOS / Linux
+npm run dev
+```
+
+常用指令：
+
+| 指令 | 說明 |
+|------|------|
+| `npm run dev` | 安裝 Python 依賴、檢查模擬資料，並啟動本地伺服器 |
+| `npm run setup` | 僅安裝依賴並確保模擬資料存在 |
+| `npm run generate-data` | 重新產生 `data/sample_orders.csv` / `.json` |
+| `npm start` | 同 `npm run dev` |
+
+啟動後開啟：
+- 儀表板：http://localhost:8000
+- API Docs：http://localhost:8000/docs
+
+> 請透過上述網址存取，不要直接開啟 `public/index.html`，否則 API 無法連線。
+
+### 其他啟動方式
+
+**Windows**：也可雙擊 `start.bat`，瀏覽器開啟 http://localhost:8000
+
+**手動啟動（Python）**：
 
 ```bash
 cd shoplite
 python -m venv .venv
 .venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # macOS / Linux
 pip install -r requirements.txt
 copy .env.example .env
 python scripts/generate_sample_data.py
 uvicorn app.main:app --reload --port 8000
 ```
-
-開啟：
-- 儀表板：http://localhost:8000
-- API Docs：http://localhost:8000/docs
-
-> 請透過上述網址存取，不要直接開啟 `public/index.html`，否則 API 無法連線。
 
 ## 環境變數（.env）
 

@@ -1,0 +1,13 @@
+{
+  "name": "shoplite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ShopLite B2B2C analytics dashboard",
+  "scripts": {
+    "setup": "node scripts/ensure-env.js",
+    "generate-data": "python scripts/generate_sample_data.py",
+    "predev": "npm run setup",
+    "dev": "python -m uvicorn app.main:app --reload --port 8000",
+    "start": "npm run dev"
+  }
+}
