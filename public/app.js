@@ -99,7 +99,6 @@ let toastTimer;
 
 const charts = {
   category: null,
-  timeDaily: null,
   timeQuarterly: null,
   segment: null,
   productCategory: null,
@@ -320,25 +319,15 @@ function aggregateRevenueByQuarter(items) {
     }));
 }
 
-function smoothSeries(values, windowSize = 3) {
-  if (!values.length) return [];
-  return values.map((_, index) => {
-    const start = Math.max(0, index - windowSize + 1);
-    const slice = values.slice(start, index + 1);
-    return Math.round(slice.reduce((sum, value) => sum + value, 0) / slice.length);
-  });
-}
-
-function lineChartMoneyOptions({ xTitle, xScale, xTicks } = {}) {
+function lineChartMoneyOptions({ xTitle } = {}) {
   const gridStyle = { color: "rgba(148, 163, 184, 0.25)" };
   return {
     plugins: { legend: { position: "bottom" } },
     scales: {
       x: {
-        ...(xScale || {}),
         ...(xTitle ? { title: { display: true, text: xTitle } } : {}),
         grid: gridStyle,
-        ticks: xTicks || { maxRotation: 0, autoSkip: true },
+        ticks: { maxRotation: 0, autoSkip: true },
       },
       y: {
         ticks: {
@@ -349,87 +338,6 @@ function lineChartMoneyOptions({ xTitle, xScale, xTicks } = {}) {
       },
     },
   };
-}
-
-function buildMonthlyTickIndices(dates) {
-  const indices = new Set([0]);
-  for (let i = 1; i < dates.length; i += 1) {
-    const [year, month] = dates[i].split("-").map(Number);
-    const [prevYear, prevMonth] = dates[i - 1].split("-").map(Number);
-    if (year !== prevYear || month !== prevMonth) indices.add(i);
-  }
-  return indices;
-}
-
-function formatMonthLabel(dateStr) {
-  const [year, month] = dateStr.split("-");
-  return `${year}年${Number(month)}月`;
-}
-
-function buildMonthlyLinearXTicks(labels, monthlyTickIndices) {
-  const monthTicks = [...monthlyTickIndices].sort((a, b) => a - b);
-  return {
-    maxRotation: 0,
-    autoSkip: false,
-    afterBuildTicks: (scale) => {
-      scale.ticks = monthTicks.map((index) => ({
-        value: index,
-        label: formatMonthLabel(labels[index]),
-      }));
-    },
-  };
-}
-
-function toIndexedPoints(values) {
-  return values.map((value, index) => ({ x: index, y: value }));
-}
-
-function renderDailyTimeChart(items) {
-  const ctx = document.getElementById("dailyTimeChart");
-  destroyChart("timeDaily");
-  const labels = items.map((item) => item.date);
-  const revenues = items.map((item) => item.revenue);
-  const monthlyTickIndices = buildMonthlyTickIndices(labels);
-  charts.timeDaily = new Chart(ctx, {
-    type: "line",
-    data: {
-      datasets: [
-        {
-          label: "每日營收",
-          data: toIndexedPoints(revenues),
-          borderColor: "#93c5fd",
-          backgroundColor: "rgba(147, 197, 253, 0.18)",
-          fill: true,
-          tension: 0.15,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          borderWidth: 2,
-          order: 1,
-        },
-        {
-          label: "平滑趨勢",
-          data: toIndexedPoints(smoothSeries(revenues, 7)),
-          borderColor: "#1d4ed8",
-          backgroundColor: "transparent",
-          fill: false,
-          tension: 0.42,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          borderWidth: 3,
-          order: 2,
-        },
-      ],
-    },
-    options: lineChartMoneyOptions({
-      xTitle: "月份",
-      xScale: {
-        type: "linear",
-        min: 0,
-        max: Math.max(labels.length - 1, 0),
-      },
-      xTicks: buildMonthlyLinearXTicks(labels, monthlyTickIndices),
-    }),
-  });
 }
 
 function renderQuarterlyTimeChart(items) {
@@ -506,7 +414,6 @@ async function refreshOverviewPage() {
   ]);
   renderSummary(summary);
   renderCategoryChart(categories.items);
-  renderDailyTimeChart(timeline.items);
   renderQuarterlyTimeChart(timeline.items);
   renderTopProducts(products.items);
   renderSegments(segments.items);
